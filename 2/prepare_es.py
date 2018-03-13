@@ -10,23 +10,28 @@ from elasticsearch.helpers import bulk, streaming_bulk
 
 YEAR = "2017"
 
+
 def read_judgments_jsons(files):
     for path in files:
         yield json.loads(pathlib.Path(path).read_text())
+
 
 def items_from_judgments_jsons(judgments):
     for judgment in judgments:
         for item in judgment["items"]:
             yield item
 
+
 def is_correct_judgment_year(year):
-    return lambda item:item["judgmentDate"][:4] == year
+    return lambda item: item["judgmentDate"][:4] == year
+
 
 def items_in_given_year(files):
     judgments_jsons = read_judgments_jsons(files)
     items = items_from_judgments_jsons(judgments_jsons)
     for item in filter(is_correct_judgment_year(YEAR), items):
         yield item
+
 
 def create_judgment_index(client):
     create_index_body = {
@@ -49,8 +54,8 @@ def create_judgment_index(client):
           "properties": {
             "id": {"type": "keyword"},
             "date": {"type": "date"},
-            "text_content": {"type": "text"},
-            "judges": {"type": "text"}
+            "text_content": {"type": "text", "analyzer": "polish_analyzer"},
+            "judges": {"type": "keyword"}
           }
         }
       }
@@ -59,6 +64,7 @@ def create_judgment_index(client):
         index="judgment",
         body=create_index_body
     )
+
 
 def items_to_es_doc(items):
     for item in items:
@@ -69,18 +75,21 @@ def items_to_es_doc(items):
             "judges": [judge["name"] for judge in item["judges"]]
         }
         
+
 def push_judgments_to_es(client, items_in_es_format):
     for ok, result in streaming_bulk(
             client,
             items_in_es_format,
             index="judgment",
             doc_type="doc",
-        ):
+            max_retries=10,
+            chunk_size=400,
+            ):
         action, result = result.popitem()
         doc_id = "/{}/doc/{}".format("judgment", result['_id'])
 
         if not ok:
-            print("Failed to {} document {}: {}".format(action, doc_id, result))
+            print("Failed {} document {}: {}".format(action, doc_id, result))
         else:
             print(doc_id)
 
@@ -93,8 +102,7 @@ if __name__ == "__main__":
         print(e)
 
     files = glob.glob("data/json/judgments*.json")
-    judgments_jsons = read_judgments_jsons(files)
-    items = items_from_judgments_jsons(judgments_jsons)
+    items = items_in_given_year(files)
     push_judgments_to_es(es, items_to_es_doc(items))
 
     es.indices.refresh(index="judgment")
