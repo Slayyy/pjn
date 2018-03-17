@@ -33,7 +33,7 @@ def items_in_given_year(files):
 
 
 def is_correct_word(word):
-    return re.match(r"^[aąbcćdeęfghijklłmnńoóprsśtuwyzźż]{2,}$", word)
+    return re.match(r"^[aąbcćdeęfghijklłmnńoóprsśtuwyzźż-]{2,}$", word)
 
 
 if __name__ == "__main__":
@@ -43,15 +43,14 @@ if __name__ == "__main__":
     frequence_list = {}
     for item in items:
         text_content = item["textContent"]
-        text_content = text_content.replace("-", "")
-        text_content = text_content.replace("\n", "")
+        text_content = re.sub(r"-\n", "", text_content)
 
         url = "http://localhost:9200/_analyze"
         request = {
            "char_filter":  ["html_strip"],
-           "tokenizer": "standard",
            "filter": ["lowercase", "stop"],
-           "text": item["textContent"],
+           "tokenizer": "standard",
+           "text": text_content,
         }
         response = requests.post(url, json=request)
 

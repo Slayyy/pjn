@@ -5,7 +5,7 @@
 Budowa i uruchomienie dockera wraz z pluginem elasticsearch-analysis-morfologik:
 
 ```bash
-docker build -t pjn2 . && docker run -p 9200:9200 pjn2
+docker build -t pjn3 . && docker run -p 9200:9200 pjn3
 ```
 
 Utworzenie listy frekwencyjnej słow:
