@@ -11,6 +11,7 @@ import sys
 import math
 import pickle
 import numpy as np
+import gc
 from tqdm import tqdm
 
 from sklearn.model_selection import train_test_split
@@ -66,6 +67,7 @@ class BagOfWord:
 
 def extract_bags_of_words(items, perform_lemmatisation):
     bagOfWords = []
+
     for item in tqdm(filter(lambda x: x["courtType"] == "COMMON", items)):
         text_content = item["textContent"]
 
@@ -120,7 +122,7 @@ if __name__ == "__main__":
         all_words_counter.update(bow.counter)
 
     for w in list(all_words_counter):
-        if all_words_counter[w] < 5:
+        if sum(1 for bow in bags_of_words if w in bow.counter) < 10:
             del all_words_counter[w]
 
     words_sequence = sorted([w for w in all_words_counter])
@@ -151,18 +153,26 @@ if __name__ == "__main__":
     if not os.path.exists(directory):
         os.makedirs(directory)
 
+    del bags_of_words
+    del all_words_counter
+
     for name, data in tqdm((("test", test_data), ("train", train_data))):
+        gc.collect()
         shape = (len(data), len(words_sequence))
         print(f"{name}: {shape}")
 
         m = sparse.lil_matrix(shape, dtype=float)
         for i, bow in enumerate(data):
+            bc_sum =  float(sum(bow.counter.values()))
             for j, w in enumerate(words_sequence):
-                tf = float(bow.counter[w]) / float(sum(bow.counter.values()))
+                tf = float(bow.counter[w]) / bc_sum
                 m[i, j] = tf * idfs[w]
 
+        m = m.tocsr()
+        gc.collect()
         with open(f"{directory}/{name}.pkl", "wb") as f:
-            pickle.dump(m, f, pickle.HIGHEST_PROTOCOL)
+            pickle.dump(m.tocsr(), f, pickle.HIGHEST_PROTOCOL)
 
         with open(f"{directory}/{name}_groups.json", "w") as f:
             json.dump([bow.group for bow in data], f)
+
