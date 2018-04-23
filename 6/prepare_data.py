@@ -68,8 +68,14 @@ class BagOfWord:
 def extract_bags_of_words(items, perform_lemmatisation):
     bagOfWords = []
 
+    i = 0
     for item in tqdm(filter(lambda x: x["courtType"] == "COMMON", items)):
         text_content = item["textContent"]
+
+        i += 1
+        if i == 1000:
+            break
+
 
         group = determine_group(item)
         if not group:

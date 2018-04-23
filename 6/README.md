@@ -1,4 +1,4 @@
-# Zadanie 4
+# Zadanie 
 
 ## Jak uruchomić:
 
@@ -8,9 +8,10 @@ Budowa i uruchomienie dockera wraz z pluginem elasticsearch-analysis-morfologik:
 docker build -t pjn6 . && docker run -p 9200:9200 pjn6
 ```
 
-Utworzenie statystyk występowania słow w dokumentach:
+Utworzenie danych uczących i testowych dla obu przypadków:
 ```bash
-./make_frequence_stats.py
+./prepare_data.py && \
+./prepare_data.py --lematization
 ``` 
 
 [Wyniki](main.ipynb)
