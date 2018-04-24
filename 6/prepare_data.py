@@ -68,14 +68,8 @@ class BagOfWord:
 def extract_bags_of_words(items, perform_lemmatisation):
     bagOfWords = []
 
-    i = 0
     for item in tqdm(filter(lambda x: x["courtType"] == "COMMON", items)):
         text_content = item["textContent"]
-
-        i += 1
-        if i == 1000:
-            break
-
 
         group = determine_group(item)
         if not group:
@@ -169,7 +163,7 @@ if __name__ == "__main__":
 
         m = sparse.lil_matrix(shape, dtype=float)
         for i, bow in enumerate(data):
-            bc_sum =  float(sum(bow.counter.values()))
+            bc_sum = float(sum(bow.counter.values()))
             for j, w in enumerate(words_sequence):
                 tf = float(bow.counter[w]) / bc_sum
                 m[i, j] = tf * idfs[w]
@@ -181,4 +175,3 @@ if __name__ == "__main__":
 
         with open(f"{directory}/{name}_groups.json", "w") as f:
             json.dump([bow.group for bow in data], f)
-
