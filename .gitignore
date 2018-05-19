@@ -133,3 +133,8 @@ polimorfologik-2.1.txt
 *.pkl
 plwordnet/
 joblib/
+
+wv*
+
+trigrams/
+all_items/
