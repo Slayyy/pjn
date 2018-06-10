@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
+from random import shuffle
 
 input_file = open(sys.argv[1], "r").readlines()
 ratio = int(sys.argv[2].replace("%", "")) / 100
@@ -16,6 +17,7 @@ for row in input_file:
 test_rows = []
 train_rows = []
 for _, rows in categories.items():
+    shuffle(rows)
     bound = int(len(rows) * ratio)
     test_rows.extend(rows[:bound])
     train_rows.extend(rows[bound:])
