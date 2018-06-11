@@ -12,7 +12,7 @@ for category in sys.argv[1:]:
     file_content = open(category+".json", "r").read()
     ids = re.findall(r'"id":(\d+)', file_content)
 
-    for id in tqdm(ids[:100]):
+    for id in tqdm(ids):
         try:
             page = wikipedia.page(pageid=id)
         except Exception as e:
